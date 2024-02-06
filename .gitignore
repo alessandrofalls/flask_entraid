@@ -82,10 +82,11 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
+.gitignore
 .env
 .venv
 env/
-venv/
+venv-flask-entraid/
 ENV/
 env.bak/
 venv.bak/

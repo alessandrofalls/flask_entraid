@@ -34,6 +34,20 @@ def login():
         redirect_uri=url_for("auth_response", _external=True), # Optional. If present, this absolute URL must match your app's redirect_uri registered in Azure Portal
         ))
 
+@app.route("/megroups")
+def megroups():
+    token = auth.get_token_for_user(app_config.SCOPE)
+    if "error" in token:
+        return redirect(url_for("login"))
+    # Use access groups
+    api_result = requests.post(
+        app_config.ENDPOINT_ME+'getMemberGroups',
+        headers={'Authorization': 'Bearer ' + token['access_token']},
+        timeout=30,
+        json={'securityEnabledOnly': 'True'},
+    ).json()
+    return render_template('megroups.html', result=api_result)
+
 @app.route("/groups")
 def groups():
     token = auth.get_token_for_user(app_config.SCOPE)
@@ -58,7 +72,13 @@ def me():
         headers={'Authorization': 'Bearer ' + token['access_token']},
         timeout=30,
     ).json()
-    return render_template('me.html', result=api_result)
+    meus_grupos = api_result
+    lista_meus_grupos = meus_grupos['value']
+    # print("The variable, name is of type:", type(meus_grupos))
+    # https://www.youtube.com/watch?v=oQfNYqz8pLs explica sobre listas e dicionários.
+    for mg in lista_meus_grupos:
+         print(mg['displayName'])
+    return render_template('me.html', result=meus_grupos)
 
 @app.route(app_config.REDIRECT_PATH)
 def auth_response():
@@ -81,6 +101,7 @@ def index():
         return render_template('config_error.html')
     if not auth.get_user():
         return redirect(url_for("login"))
+    
     return render_template('index.html', user=auth.get_user(), version=identity.__version__)
 
 
